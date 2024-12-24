@@ -80,6 +80,12 @@ DNSOverTLS={"yes" if use_dot else "no"}
             logging.error(f"Failed to push custom dns override: {e}")
 
     async def apply_dns_preset(self, preset: str):
+        if preset not in DNS_PRESETS:
+            logging.error(f"Invalid dns preset: {preset}")
+            return
+        if preset == "None":
+            await self.drop_custom_dns_override()
+            return
         logging.info(f"Applying dns preset: {preset}")
         await self.push_custom_dns_override(**DNS_PRESETS[preset])
 
