@@ -3,7 +3,7 @@ name: Create release on main branch tags
 on:
   push:
     tags:
-      - '*'
+      - "*"
 
 permissions:
   contents: write
@@ -27,7 +27,7 @@ jobs:
       - name: Get tag version
         id: get_version
         run: echo ::set-output name=VERSION::${GITHUB_REF#refs/tags/}
-       
+
       - name: Create Release
         id: create_release
         uses: softprops/action-gh-release@v2
@@ -37,5 +37,4 @@ jobs:
           body: ${{ github.event.head_commit.message }}
           draft: false
           prerelease: false
-          files: ./Decky-SpoofDPI.zip
-  
+          files: "./Decky DNS Settings.zip"

@@ -2,7 +2,6 @@ name: Create Nightly Release
 
 on:
   workflow_dispatch:
-  
 
 permissions:
   contents: write
@@ -36,4 +35,4 @@ jobs:
           body: ${{ github.event.head_commit.message }}
           draft: false
           prerelease: true
-          files: ./Decky-SpoofDPI.zip
+          files: "./Decky DNS Settings.zip"

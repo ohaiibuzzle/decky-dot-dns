@@ -1,5 +1,5 @@
 {
-  "name": "decky-dot-dns",
+  "name": "decky-dns-settings",
   "version": "0.0.1",
   "description": "A plugin to override the systemd-resolved from Decky.",
   "type": "module",

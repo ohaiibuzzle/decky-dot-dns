@@ -9,7 +9,7 @@
     "tags": [
       "root"
     ],
-    "description": "Decky DNS Settings.",
+    "description": "A plugin to override the systemd-resolved config from Decky.",
     "image": ""
   }
 }
