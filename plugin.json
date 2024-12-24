@@ -1,11 +1,16 @@
 {
-  "name": "Example Plugin",
-  "author": "John Doe",
-  "flags": ["debug", "_root"],
+  "name": "Decky DNS Settings",
+  "author": "OHaiiBuzzle",
+  "flags": [
+    "debug",
+    "root"
+  ],
   "api_version": 1,
   "publish": {
-    "tags": ["template", "root"],
-    "description": "Decky example plugin.",
+    "tags": [
+      "root"
+    ],
+    "description": "Decky DNS Settings.",
     "image": "https://opengraph.githubassets.com/1/SteamDeckHomebrew/PluginLoader"
   }
 }
