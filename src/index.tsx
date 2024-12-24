@@ -16,41 +16,12 @@ import {
 import { useEffect, useState } from "react";
 import { FaNetworkWired } from "react-icons/fa";
 
-// import logo from "../assets/logo.png";
-
-// This function calls the python function "add", which takes in two numbers and returns their sum (as a number)
-// Note the type annotations:
-//  the first one: [first: number, second: number] is for the arguments
-//  the second one: number is for the return value
 const push_custom_dns_override = callable<[string, string, string, string, boolean], void>("push_custom_dns_override");
 const drop_custom_dns_override = callable<[], void>("drop_custom_dns_override");
 const restart_resolved = callable<[], void>("restart_resolved");
 const get_dns_settings = callable<[], [string, string, string, string, boolean]>("get_dns_settings");
-
-class DNSTemplate {
-  name: string;
-  insecure_dns: string;
-  secure_dns: string;
-  insecure_dnsv6: string;
-  secure_dnsv6: string;
-  use_dot: boolean;
-  constructor(name: string, insecure_dns: string, secure_dns: string, insecure_dnsv6: string, secure_dnsv6: string, use_dot: boolean) {
-    this.name = name;
-    this.insecure_dns = insecure_dns;
-    this.secure_dns = secure_dns;
-    this.insecure_dnsv6 = insecure_dnsv6;
-    this.secure_dnsv6 = secure_dnsv6;
-    this.use_dot = use_dot;
-  }
-}
-
-const DNSTemplates = {
-  "None": new DNSTemplate("None", "", "", "", "", false),
-  "CloudFlare": new DNSTemplate("CloudFlare", "1.1.1.1", "cloudflare-dns.com", "2606:4700:4700::1111", "cloudflare-dns.com", false),
-  "Google": new DNSTemplate("Google", "8.8.8.8", "dns.google", "2001:4860:4860::8888", "dns.google", true),
-  "dns0.eu": new DNSTemplate("dns0.eu", "193.110.81.0", "dns0.eu", "2a0f:fc80::", "dns0.eu", true),
-  "Quad9": new DNSTemplate("Quad9", "9.9.9.10", "dns10.quad9.net", "2620:fe::10", "dns10.quad9.net", true)
-}
+const apply_dns_preset = callable<[string], void>("apply_dns_preset");
+const get_presets = callable<[], string[]>("get_presets");
 
 function Content() {
   const [insecure_dns, setInsecureDNS] = useState<string>("");
@@ -58,7 +29,7 @@ function Content() {
   const [insecure_dnsv6, setInsecureDNSv6] = useState<string>("");
   const [secure_dnsv6, setSecureDNSv6] = useState<string>("");
   const [use_dot, setUseDot] = useState<boolean>(false);
-  const [selectedPreset, setSelectedPreset] = useState<string>("None");
+  const [selectedPreset, setSelectedPreset] = useState<string>("");
 
   const onSubmit = async () => {
     await push_custom_dns_override(insecure_dns, secure_dns, insecure_dnsv6, secure_dnsv6, use_dot);
@@ -80,19 +51,17 @@ function Content() {
     });
   }, []);
 
-  const presetOptions: SingleDropdownOption[] = Object.keys(DNSTemplates).map(key => {
-    return {
-      label: <span>{key}</span>,
-      data: DNSTemplates[key as keyof typeof DNSTemplates]
-    }
-  })
-
-  const onSelectPreset = async (preset: DNSTemplate) => {
-    setInsecureDNS(preset.insecure_dns);
-    setSecureDNS(preset.secure_dns);
-    setInsecureDNSv6(preset.insecure_dnsv6);
-    setSecureDNSv6(preset.secure_dnsv6);
-    setUseDot(preset.use_dot);
+  const presetOptions: SingleDropdownOption[] = [];
+  get_presets().then((presets) => {
+    presets.forEach((preset) => {
+      presetOptions.push({
+        label: <span>{preset}</span>,
+        data: preset
+      });
+    });
+  });
+  const onSelectPreset = async (preset: string) => {
+    await apply_dns_preset(preset);
   };
 
   return (
@@ -103,11 +72,10 @@ function Content() {
       <PanelSectionRow>
         <Dropdown
           strDefaultLabel="Select a preset"
-          selectedOption={presetOptions.find((value: SingleDropdownOption, _index, _array) => value.data.name === selectedPreset)}
+          selectedOption={presetOptions.find((elem) => elem.data == (selectedPreset))}
           rgOptions={presetOptions}
           onChange={(elem: SingleDropdownOption) => {
-            setSelectedPreset(elem.data.name);
-            onSelectPreset(elem.data as DNSTemplate);
+            onSelectPreset(elem.data);
           }}
         />
       </PanelSectionRow>
@@ -153,7 +121,7 @@ function Content() {
           layout="below"
           onClick={onSubmit}
         >
-          Submit
+          Apply
         </ButtonItem>
 
         <ButtonItem
