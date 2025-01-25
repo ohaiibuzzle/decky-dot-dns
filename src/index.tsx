@@ -138,7 +138,7 @@ function Content() {
 export default definePlugin(() => {
   return {
     name: "DNS Settings",
-    titleView: <div className={staticClasses.Title}>Decky DNS Settings</div>,
+    titleView: <div className={staticClasses.Title}>Decky DoT DNS</div>,
     content: <Content />,
     icon: <FaNetworkWired />,
     onDismount() {

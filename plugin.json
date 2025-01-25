@@ -1,5 +1,5 @@
 {
-  "name": "Decky DNS Settings",
+  "name": "Decky DoT DNS",
   "author": "OHaiiBuzzle",
   "flags": [
     "root"
@@ -7,9 +7,11 @@
   "api_version": 1,
   "publish": {
     "tags": [
-      "root"
+      "root",
+      "networking",
+      "dns"
     ],
     "description": "A plugin to override the systemd-resolved config from Decky.",
-    "image": ""
+    "image": "https://raw.githubusercontent.com/ohaiibuzzle/decky-dot-dns/refs/heads/senpai/github_res/plugin-image.jpg"
   }
 }
