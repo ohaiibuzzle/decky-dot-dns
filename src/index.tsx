@@ -91,7 +91,7 @@ function Content() {
       <PanelSectionRow>
         <Dropdown
           strDefaultLabel="Select a preset"
-          selectedOption={presetOptions.find((elem) => elem.data == (selectedPreset))}
+          selectedOption={selectedPreset}
           rgOptions={presetOptions}
           onChange={(elem: SingleDropdownOption) => {
             onSelectPreset(elem.data);
