@@ -27,7 +27,7 @@
   "homepage": "https://github.com/ohaiibuzzle/decky-dot-dns#readme",
   "devDependencies": {
     "@decky/rollup": "^1.0.1",
-    "@decky/ui": "^4.8.3",
+    "@decky/ui": "^4.13.0",
     "@types/react": "18.3.3",
     "@types/react-dom": "18.3.0",
     "@types/webpack": "^5.28.5",
@@ -46,5 +46,12 @@
         "react-dom"
       ]
     }
-  }
+  },
+  "remote_binary": [
+    {
+      "name": "udns",
+      "url": "https://github.com/ohaiibuzzle/udns/releases/download/v0.1.3/udns-0.1.3-x86_64-unknown-linux-musl",
+      "sha256hash": "9e25e4b2dd985e712d8704b913d7924f53ea6d351b1aa5637ed9756b9cab0ac8"
+    }
+  ]
 }

@@ -4,7 +4,6 @@ import {
   PanelSection,
   PanelSectionRow,
   TextField,
-  ToggleField,
   staticClasses,
   SingleDropdownOption
 } from "@decky/ui";
@@ -16,23 +15,30 @@ import {
 import { useEffect, useState } from "react";
 import { FaNetworkWired } from "react-icons/fa";
 
-const push_custom_dns_override = callable<[string, string, string, string, boolean], void>("push_custom_dns_override");
+const push_custom_dns_override = callable<[string, string, string, string, string], void>("push_custom_dns_override");
 const drop_custom_dns_override = callable<[], void>("drop_custom_dns_override");
 const restart_resolved = callable<[], void>("restart_resolved");
-const get_dns_settings = callable<[], [string, string, string, string, boolean]>("get_dns_settings");
+const get_dns_settings = callable<[], [string, string, string, string, string]>("get_dns_settings");
 const apply_dns_preset = callable<[string], void>("apply_dns_preset");
 const get_presets = callable<[], string[]>("get_presets");
+
+const modeOptions: SingleDropdownOption[] = [
+  { label: "Plain", data: "plain" },
+  { label: "DNS over TLS", data: "dot" },
+  { label: "DNS over HTTPS", data: "doh" },
+  { label: "DNS over QUIC", data: "doq" },
+];
 
 function Content() {
   const [insecure_dns, setInsecureDNS] = useState<string>("");
   const [secure_dns, setSecureDNS] = useState<string>("");
   const [insecure_dnsv6, setInsecureDNSv6] = useState<string>("");
   const [secure_dnsv6, setSecureDNSv6] = useState<string>("");
-  const [use_dot, setUseDot] = useState<boolean>(false);
+  const [mode, setMode] = useState<string>("plain");
   const [selectedPreset, setSelectedPreset] = useState<string>("");
 
   const onSubmit = async () => {
-    await push_custom_dns_override(insecure_dns, secure_dns, insecure_dnsv6, secure_dnsv6, use_dot);
+    await push_custom_dns_override(insecure_dns, secure_dns, insecure_dnsv6, secure_dnsv6, mode);
     await restart_resolved();
   };
 
@@ -42,12 +48,12 @@ function Content() {
   };
 
   useEffect(() => {
-    get_dns_settings().then(([insecure_dns, secure_dns, insecure_dnsv6, secure_dnsv6, use_dot]) => {
+    get_dns_settings().then(([insecure_dns, secure_dns, insecure_dnsv6, secure_dnsv6, mode]) => {
       setInsecureDNS(insecure_dns);
       setSecureDNS(secure_dns);
       setInsecureDNSv6(insecure_dnsv6);
       setSecureDNSv6(secure_dnsv6);
-      setUseDot(use_dot);
+      setMode(mode);
     });
   }, []);
 
@@ -84,10 +90,10 @@ function Content() {
         {"Custom DNS"}
       </div>
       <PanelSectionRow>
-        <ToggleField
-          label="Use DoT"
-          checked={use_dot}
-          onChange={setUseDot}
+        <Dropdown
+          rgOptions={modeOptions}
+          selectedOption={mode}
+          onChange={(elem: SingleDropdownOption) => setMode(elem.data)}
         />
         <TextField
           label="Insecure DNS"
@@ -99,7 +105,7 @@ function Content() {
           label="Secure DNS"
           value={secure_dns}
           onChange={e => setSecureDNS(e.target.value)}
-          disabled={!use_dot}
+          disabled={mode == "plain"}
         />
 
         <TextField
@@ -112,7 +118,7 @@ function Content() {
           label="Secure DNSv6"
           value={secure_dnsv6}
           onChange={e => setSecureDNSv6(e.target.value)}
-          disabled={!use_dot}
+          disabled={mode == "plain"}
         />
       </PanelSectionRow>
 
