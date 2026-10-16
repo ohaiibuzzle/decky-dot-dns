@@ -2,9 +2,10 @@ import ipaddress
 import json
 import os
 import shutil
-import subprocess
 
 import decky
+
+from resolved import systemctl
 
 # 127.bu.zz.1e :xdd:
 LISTEN = "127.28.99.13:5053"
@@ -95,13 +96,13 @@ UMask=0077
 [Install]
 WantedBy=multi-user.target
 """)
-    subprocess.run(["systemctl", "daemon-reload"], check=True)
-    subprocess.run(["systemctl", "enable", UNIT], check=True)
-    subprocess.run(["systemctl", "restart", UNIT], check=True)
+    systemctl("daemon-reload", check=True)
+    systemctl("enable", UNIT, check=True)
+    systemctl("restart", UNIT, check=True)
 
 
 def stop():
     if os.path.exists(UNIT_PATH):
-        subprocess.run(["systemctl", "disable", "--now", UNIT])
+        systemctl("disable", "--now", UNIT)
         os.remove(UNIT_PATH)
-        subprocess.run(["systemctl", "daemon-reload"])
+        systemctl("daemon-reload")

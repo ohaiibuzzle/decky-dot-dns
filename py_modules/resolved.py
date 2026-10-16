@@ -1,7 +1,19 @@
 import os
 import logging
+import subprocess
 
 RESOLVED_DNS_CONFIG_PATH = "/etc/systemd/resolved.conf.d/decky-dot-dns.conf"
+
+
+def systemctl(*args: str, check: bool = False):
+    # workaround decky using its own LD_LIBRARY_PATh
+    env = dict(os.environ)
+    orig = env.pop("LD_LIBRARY_PATH_ORIG", None)
+    if orig is None:
+        env.pop("LD_LIBRARY_PATH", None)
+    else:
+        env["LD_LIBRARY_PATH"] = orig
+    return subprocess.run(["systemctl", *args], env=env, check=check)
 
 
 def write_override(dns: str, use_dot: bool) -> str:
@@ -25,5 +37,5 @@ def drop_override():
 
 
 def restart():
-    os.system("systemctl restart systemd-resolved")
+    systemctl("restart", "systemd-resolved")
     logging.info(f"Restarted systemd-resolved")
