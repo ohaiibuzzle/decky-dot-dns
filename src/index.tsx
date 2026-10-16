@@ -12,7 +12,7 @@ import {
   definePlugin,
   // routerHook
 } from "@decky/api"
-import { useEffect, useState } from "react";
+import { useEffect, useReducer } from "react";
 import { FaNetworkWired } from "react-icons/fa";
 
 const push_custom_dns_override = callable<[string, string, string, string, string], void>("push_custom_dns_override");
@@ -32,9 +32,14 @@ const modeOptions: SingleDropdownOption[] = [
 // decky still has that annoying qam remounts behavior, 
 // so states needs to be cached outside of the component.
 const cache: Record<string, any> = {};
+const listeners = new Set<() => void>();
 function usePersistent<T>(key: string, initial: T): [T, (v: T) => void] {
-  const [value, setValue] = useState<T>(key in cache ? cache[key] : initial);
-  return [value, (v: T) => { cache[key] = v; setValue(v); }];
+  const [, rerender] = useReducer((n: number) => n + 1, 0);
+  useEffect(() => {
+    listeners.add(rerender);
+    return () => { listeners.delete(rerender); };
+  }, []);
+  return [key in cache ? cache[key] : initial, (v: T) => { cache[key] = v; listeners.forEach((l) => l()); }];
 }
 
 function Content() {
