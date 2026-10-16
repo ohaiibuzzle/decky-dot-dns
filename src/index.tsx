@@ -29,13 +29,22 @@ const modeOptions: SingleDropdownOption[] = [
   { label: "DNS over QUIC", data: "doq" },
 ];
 
+// decky still has that annoying qam remounts behavior, 
+// so states needs to be cached outside of the component.
+const cache: Record<string, any> = {};
+function usePersistent<T>(key: string, initial: T): [T, (v: T) => void] {
+  const [value, setValue] = useState<T>(key in cache ? cache[key] : initial);
+  return [value, (v: T) => { cache[key] = v; setValue(v); }];
+}
+
 function Content() {
-  const [insecure_dns, setInsecureDNS] = useState<string>("");
-  const [secure_dns, setSecureDNS] = useState<string>("");
-  const [insecure_dnsv6, setInsecureDNSv6] = useState<string>("");
-  const [secure_dnsv6, setSecureDNSv6] = useState<string>("");
-  const [mode, setMode] = useState<string>("plain");
-  const [selectedPreset, setSelectedPreset] = useState<string>("");
+  const [insecure_dns, setInsecureDNS] = usePersistent<string>("insecure_dns", "");
+  const [secure_dns, setSecureDNS] = usePersistent<string>("secure_dns", "");
+  const [insecure_dnsv6, setInsecureDNSv6] = usePersistent<string>("insecure_dnsv6", "");
+  const [secure_dnsv6, setSecureDNSv6] = usePersistent<string>("secure_dnsv6", "");
+  const [mode, setMode] = usePersistent<string>("mode", "plain");
+  const [selectedPreset, setSelectedPreset] = usePersistent<string>("selectedPreset", "");
+  const [presets, setPresets] = usePersistent<string[]>("presets", []);
 
   const onSubmit = async () => {
     await push_custom_dns_override(insecure_dns, secure_dns, insecure_dnsv6, secure_dnsv6, mode);
@@ -47,7 +56,7 @@ function Content() {
     await restart_resolved();
   };
 
-  useEffect(() => {
+  const loadSettings = () =>
     get_dns_settings().then(([insecure_dns, secure_dns, insecure_dnsv6, secure_dnsv6, mode]) => {
       setInsecureDNS(insecure_dns);
       setSecureDNS(secure_dns);
@@ -55,19 +64,23 @@ function Content() {
       setSecureDNSv6(secure_dnsv6);
       setMode(mode);
     });
+
+  useEffect(() => {
+    // only do this is cache is cold, else we just do the same thing decky does.
+    if (cache.loaded) return;
+    cache.loaded = true;
+    loadSettings();
+    get_presets().then(setPresets);
   }, []);
 
-  const presetOptions: SingleDropdownOption[] = [];
-  get_presets().then((presets) => {
-    presets.forEach((preset) => {
-      presetOptions.push({
-        label: <span>{preset}</span>,
-        data: preset
-      });
-    });
-  });
+  const presetOptions: SingleDropdownOption[] = presets.map((preset) => ({
+    label: <span>{preset}</span>,
+    data: preset
+  }));
   const onSelectPreset = async (preset: string) => {
+    setSelectedPreset(preset);
     await apply_dns_preset(preset);
+    await loadSettings(); // show the preset's values in the fields
   };
 
   return (
