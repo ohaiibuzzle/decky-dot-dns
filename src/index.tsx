@@ -13,7 +13,7 @@ import {
   definePlugin,
   // routerHook
 } from "@decky/api"
-import { useEffect, useState } from "react";
+import { useEffect, useReducer } from "react";
 import { FaNetworkWired } from "react-icons/fa";
 
 const push_custom_dns_override = callable<[string, string, string, string, boolean], void>("push_custom_dns_override");
@@ -23,13 +23,26 @@ const get_dns_settings = callable<[], [string, string, string, string, boolean]>
 const apply_dns_preset = callable<[string], void>("apply_dns_preset");
 const get_presets = callable<[], string[]>("get_presets");
 
+// decky still has that annoying qam remounts behavior, 
+// so states needs to be cached outside of the component.
+const cache: Record<string, any> = {};
+const listeners = new Set<() => void>();
+function usePersistent<T>(key: string, initial: T): [T, (v: T) => void] {
+  const [, rerender] = useReducer((n: number) => n + 1, 0);
+  useEffect(() => {
+    listeners.add(rerender);
+    return () => { listeners.delete(rerender); };
+  }, []);
+  return [key in cache ? cache[key] : initial, (v: T) => { cache[key] = v; listeners.forEach((l) => l()); }];
+}
+
 function Content() {
-  const [insecure_dns, setInsecureDNS] = useState<string>("");
-  const [secure_dns, setSecureDNS] = useState<string>("");
-  const [insecure_dnsv6, setInsecureDNSv6] = useState<string>("");
-  const [secure_dnsv6, setSecureDNSv6] = useState<string>("");
-  const [use_dot, setUseDot] = useState<boolean>(false);
-  const [selectedPreset, setSelectedPreset] = useState<string>("");
+  const [insecure_dns, setInsecureDNS] = usePersistent<string>("insecure_dns", "");
+  const [secure_dns, setSecureDNS] = usePersistent<string>("secure_dns", "");
+  const [insecure_dnsv6, setInsecureDNSv6] = usePersistent<string>("insecure_dnsv6", "");
+  const [secure_dnsv6, setSecureDNSv6] = usePersistent<string>("secure_dnsv6", "");
+  const [use_dot, setUseDot] = usePersistent<boolean>("use_dot", false);
+  const [selectedPreset, _ ] = usePersistent<string>("selectedPreset", "");
 
   const onSubmit = async () => {
     await push_custom_dns_override(insecure_dns, secure_dns, insecure_dnsv6, secure_dnsv6, use_dot);

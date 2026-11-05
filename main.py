@@ -33,11 +33,11 @@ DNS_PRESETS = {
         "secure_dnsv6": "dns.google",
         "use_dot": True    
     },
-    "dns0.eu": {
-        "insecure_dns": "193.110.81.0",
-        "secure_dns": "dns0.eu",
-        "insecure_dnsv6": "2a0f:fc80::",
-        "secure_dnsv6": "dns0.eu",
+    "DNS4EU": {
+        "insecure_dns": "86.54.11.100",
+        "secure_dns": "unfiltered.joindns4.eu",
+        "insecure_dnsv6": "2a13:1001::86:54:11:100",
+        "secure_dnsv6": "unfiltered.joindns4.eu",
         "use_dot": True    
     },
     "Quad9": {
