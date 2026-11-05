@@ -1,7 +1,7 @@
 {
   "name": "decky-dot-dns",
   "version": "0.0.4",
-  "description": "A plugin to override the systemd-resolved from Decky.",
+  "description": "A plugin to override the systemd-resolved config from Decky.",
   "type": "module",
   "scripts": {
     "build": "rollup -c",
