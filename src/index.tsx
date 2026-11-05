@@ -18,7 +18,6 @@ import { FaNetworkWired } from "react-icons/fa";
 
 const push_custom_dns_override = callable<[string, string, string, string, boolean], void>("push_custom_dns_override");
 const drop_custom_dns_override = callable<[], void>("drop_custom_dns_override");
-const restart_resolved = callable<[], void>("restart_resolved");
 const get_dns_settings = callable<[], [string, string, string, string, boolean]>("get_dns_settings");
 const apply_dns_preset = callable<[string], void>("apply_dns_preset");
 const get_presets = callable<[], string[]>("get_presets");
@@ -36,25 +35,33 @@ function usePersistent<T>(key: string, initial: T): [T, (v: T) => void] {
   return [key in cache ? cache[key] : initial, (v: T) => { cache[key] = v; listeners.forEach((l) => l()); }];
 }
 
+const presetOptions: SingleDropdownOption[] = [];
+get_presets().then((presets) => {
+  presets.forEach((preset) => {
+    presetOptions.push({
+      label: <span>{preset}</span>,
+      data: preset
+    });
+  });
+});
+
 function Content() {
   const [insecure_dns, setInsecureDNS] = usePersistent<string>("insecure_dns", "");
   const [secure_dns, setSecureDNS] = usePersistent<string>("secure_dns", "");
   const [insecure_dnsv6, setInsecureDNSv6] = usePersistent<string>("insecure_dnsv6", "");
   const [secure_dnsv6, setSecureDNSv6] = usePersistent<string>("secure_dnsv6", "");
   const [use_dot, setUseDot] = usePersistent<boolean>("use_dot", false);
-  const [selectedPreset, _ ] = usePersistent<string>("selectedPreset", "");
+  const [selectedPreset, setSelectedPreset] = usePersistent<string>("selectedPreset", "");
 
   const onSubmit = async () => {
     await push_custom_dns_override(insecure_dns, secure_dns, insecure_dnsv6, secure_dnsv6, use_dot);
-    await restart_resolved();
   };
 
   const onDrop = async () => {
     await drop_custom_dns_override();
-    await restart_resolved();
   };
 
-  useEffect(() => {
+  const loadSettings = () => {
     get_dns_settings().then(([insecure_dns, secure_dns, insecure_dnsv6, secure_dnsv6, use_dot]) => {
       setInsecureDNS(insecure_dns);
       setSecureDNS(secure_dns);
@@ -62,19 +69,18 @@ function Content() {
       setSecureDNSv6(secure_dnsv6);
       setUseDot(use_dot);
     });
+  };
+
+  useEffect(() => {
+    if (cache.loaded) return;
+    loadSettings();
+    cache.loaded = true;
   }, []);
 
-  const presetOptions: SingleDropdownOption[] = [];
-  get_presets().then((presets) => {
-    presets.forEach((preset) => {
-      presetOptions.push({
-        label: <span>{preset}</span>,
-        data: preset
-      });
-    });
-  });
   const onSelectPreset = async (preset: string) => {
     await apply_dns_preset(preset);
+    setSelectedPreset(preset);
+    loadSettings();
   };
 
   return (
